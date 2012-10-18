@@ -53,7 +53,7 @@ searchResults.statuses.each() { |tweet|
 	quip = quips[rand(quips.count)]
 	puts "#{tweet.from_user}: #{tweet.text}"
 	puts "\tSending drop (#{drop}) to #{tweet.from_user} in response to (#{tweet.id})"
-	dropTweet = "#{quip} #{drop} [secret code: #{rand(tweet.id)}]"
+	dropTweet = "@#{tweet.from_user} #{quip} #{drop} [secret code: #{rand(tweet.id)}]"
 	puts "\t#{dropTweet}"
 	Twitter.update("#{dropTweet}", :in_reply_to_status_id => tweet.id)
 }
