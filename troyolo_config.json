@@ -38,7 +38,7 @@
         "Visit New Dropolis. Population: You?",
         "Once you drop, you'll never stop."
     ],
-    "search_size": 999999999999999999,
+    "search_size": 25,
     "twitter_config": {
         "oauth_token": "888270872-3tRbm0TOIza4VNKBH9FmiNejhRYIXwZngSBA30i0",
         "consumer_key": "NwiUwcapbePK7mFuKoJy7g",

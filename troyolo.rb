@@ -28,7 +28,7 @@ def searchPublicTweets(query, lastTweetIdSeenForThisQuery)
 	puts ""
 	puts "Last tweet id seen for query (#{query}): #{lastTweetIdSeenForThisQuery}"
 	searchResults = Twitter.search(
-			"query", 
+			"#{query}", 
 			:count => $searchSize, 
 			:result_type => "recent",
 			:since_id => lastTweetIdSeenForThisQuery
