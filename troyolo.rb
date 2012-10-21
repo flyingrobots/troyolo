@@ -3,6 +3,9 @@
 require 'rubygems'
 require 'twitter'
 require 'oj'
+require 'date'
+
+today = Date.today
 
 CONFIG_FILE = "./troyolo_config.json"
 SAVE_FILE = "./troyolo_save.json"
@@ -20,22 +23,23 @@ puts "AUTOMATED DROP DELIVERY"
 puts "Upcoming queries..."
 p $saveData
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 def searchPublicTweets(query, lastTweetIdSeenForThisQuery)
 	puts ""
 	puts "Last tweet id seen for query (#{query}): #{lastTweetIdSeenForThisQuery}"
 	searchResults = Twitter.search(
-			"#troyolo", 
+			"query", 
 			:count => $searchSize, 
 			:result_type => "recent",
 			:since_id => lastTweetIdSeenForThisQuery
 		)
 	puts "Found #{searchResults.statuses.count} new tweets."
 	puts "Last tweet found: #{searchResults.max_id}"
+	STDOUT.flush()
 	return searchResults
 end
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 def deliverTheDrop(tweet)
 	if $ignoreList.index(tweet.from_user)
 		puts "Ignoring tweet from user: #{tweet.from_user}"
@@ -46,24 +50,29 @@ def deliverTheDrop(tweet)
 		puts "\tSending drop (#{drop}) to #{tweet.from_user} in response to (#{tweet.id})"
 		dropTweet = "@#{tweet.from_user} #{quip} #{drop} [secret code: #{rand(tweet.id)}]"
 		puts "\t#{dropTweet}"
+		STDOUT.flush()
 		Twitter.update("#{dropTweet}", :in_reply_to_status_id => tweet.id)
 	end
 end
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 def searchAndDeliver(query)
 	lastTweetIdSeenForThisQuery = $saveData[query]
 	lastTweetIdSeenForThisQuery = 0 if lastTweetIdSeenForThisQuery.nil?
 	searchResults = searchPublicTweets(query, lastTweetIdSeenForThisQuery)
 	searchResults.statuses.each() { |tweet|	
 		deliverTheDrop(tweet)
+		# deliverTheDrop(tweet) if.friday? # double drop Fridays!
 	}
 	$saveData[query] = searchResults.max_id
 end
 
-#///////////////////////////////////////////////////////////////////////////////
+#//////////////////////////////////////////////////////////////////////////////
 # deliver the drop
-#///////////////////////////////////////////////////////////////////////////////
+#//////////////////////////////////////////////////////////////////////////////
+
+puts "Logging in to twitter..."
+STDOUT.flush()
 
 # login to twitter
 Twitter.configure do |t|
