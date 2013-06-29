@@ -1,0 +1,3 @@
+[submodule "deps/frutils.git"]
+	path = deps/frutils.git
+	url = git@github.com:flyingrobots/frutils.git
