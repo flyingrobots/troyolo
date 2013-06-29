@@ -1,92 +1,39 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
-require 'twitter'
-require 'oj'
-require 'date'
+# troyolo.rb
+# ------------------------------------------------------------------------------
+# The MIT License (MIT)
+# 
+# Copyright (c) 2013 James Ross
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+# ------------------------------------------------------------------------------
 
-today = Date.today
+file_dir = File.expand_path File.dirname(__FILE__)
+lib = File.join file_dir, 'lib'
+frutils = File.join file_dir, 'deps', 'frutils.git'
 
-CONFIG_FILE = "./troyolo_config.json"
-SAVE_FILE = "./troyolo_save.json"
+require File.join frutils, 'app.rb'
+require File.join lib, 'tweets.rb'
 
-$config = Oj.load_file(File.expand_path(CONFIG_FILE))
-$saveData = Oj.load_file(File.expand_path(SAVE_FILE))
-
-$twitterConfig = $config["twitter_config"]
-$dropURLs = $config["drops"]
-$quips = $config["quips"]
-$ignoreList = $config["twitter_users_to_ignore"]
-$searchSize = $config["search_size"]
-
-puts "AUTOMATED DROP DELIVERY"
-puts "Upcoming queries..."
-p $saveData
-
-#------------------------------------------------------------------------------
-def searchPublicTweets(query, lastTweetIdSeenForThisQuery)
-	puts ""
-	puts "Last tweet id seen for query (#{query}): #{lastTweetIdSeenForThisQuery}"
-	searchResults = Twitter.search(
-			"#{query}", 
-			:count => $searchSize, 
-			:result_type => "recent",
-			:since_id => lastTweetIdSeenForThisQuery
-		)
-	puts "Found #{searchResults.statuses.count} new tweets."
-	puts "Last tweet found: #{searchResults.max_id}"
-	STDOUT.flush()
-	return searchResults
-end
-
-#------------------------------------------------------------------------------
-def deliverTheDrop(tweet)
-	if $ignoreList.index(tweet.from_user)
-		puts "Ignoring tweet from user: #{tweet.from_user}"
-	else
-		drop = $dropURLs[rand($dropURLs.count)]
-		quip = $quips[rand($quips.count)]
-		puts "#{tweet.from_user}: #{tweet.text}"
-		puts "\tSending drop (#{drop}) to #{tweet.from_user} in response to (#{tweet.id})"
-		dropTweet = "@#{tweet.from_user} #{quip} #{drop} [secret code: #{rand(tweet.id)}]"
-		puts "\t#{dropTweet}"
-		STDOUT.flush()
-		Twitter.update("#{dropTweet}", :in_reply_to_status_id => tweet.id)
-	end
-end
-
-#------------------------------------------------------------------------------
-def searchAndDeliver(query)
-	lastTweetIdSeenForThisQuery = $saveData[query]
-	lastTweetIdSeenForThisQuery = 0 if lastTweetIdSeenForThisQuery.nil?
-	searchResults = searchPublicTweets(query, lastTweetIdSeenForThisQuery)
-	searchResults.statuses.each() { |tweet|	
-		deliverTheDrop(tweet)
-		# deliverTheDrop(tweet) if.friday? # double drop Fridays!
+FlyingRobots::Application.new(ARGV).run() { |opts|
+	Troyolo::Tweets.new({}).search("#troyolo", 0).each { |tweet|
+		puts tweet.full_text
 	}
-	$saveData[query] = searchResults.max_id
-end
-
-#//////////////////////////////////////////////////////////////////////////////
-# deliver the drop
-#//////////////////////////////////////////////////////////////////////////////
-
-puts "Logging in to twitter..."
-STDOUT.flush()
-
-# login to twitter
-Twitter.configure do |t|
-	t.consumer_key = $twitterConfig["consumer_key"]
-	t.consumer_secret = $twitterConfig["consumer_secret"]
-	t.oauth_token = $twitterConfig["oauth_token"]
-	t.oauth_token_secret = $twitterConfig["oauth_token_secret"]
-end
-
-# search and deliver
-searches = $config["searches"]
-searches.each() { |query|
-	searchAndDeliver(query)
 }
-
-# save query info
-Oj.to_file(SAVE_FILE, $saveData, :indent => 4)
