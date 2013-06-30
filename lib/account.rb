@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
-file_dir = File.expand_path File.dirame(__FILE__)
+file_dir = File.expand_path File.dirname(__FILE__)
 require File.join file_dir, 'tweets.rb'
 
 require 'rubygems'

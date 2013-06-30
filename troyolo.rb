@@ -41,7 +41,9 @@ require 'oj'
 
 # ------------------------------------------------------------------------------
 def args_config
-  Oj.load $file_dir, 'config', 'args.json'
+  args_filepath = File.join $file_dir, 'config', 'args.json'
+  puts "Loading arguments config file: '#{args_filepath}'"
+  Oj.load File.read(args_filepath), :symbol_keys => true
 end
 
 # ------------------------------------------------------------------------------
