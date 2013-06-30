@@ -87,7 +87,7 @@ FlyingRobots::Application.new(ARGV).run() { |opts|
   clients = load_accounts config.settings[:twitter_accounts], log
   clients.each { |c| 
     log.info "Account '#{c.username}' is ready"
-    log_lost_followers c
-    follow_new_followers c
+    log_lost_followers c, log
+    follow_new_followers c, 500
   }
 }
