@@ -64,9 +64,7 @@ def log_lost_followers(account, log)
   saved = account.saved_followers_ids
   current = account.follower_ids
   losses = saved - current
-  losses.each { |follower|
-    log.info "Lost follower '#{follower}'"
-  }
+  log.info "Lost #{losses.size} followers: ", losses
 end
 
 # ------------------------------------------------------------------------------
