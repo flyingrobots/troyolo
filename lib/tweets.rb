@@ -32,10 +32,16 @@ require 'twitter'
 module Troyolo
 
 class Tweets
+  attr_reader :username
+  
 public
   #----------------------------------------------------------------------------
   def initialize(client_config = {})
-    @log = FlyingRobots::Log.new
+    @username = client_config[:username]
+    @log = FlyingRobots::Log.new(
+      :name => "Tweets[#{@username}]",
+      :volume => Log::VOLUME_DEBUG
+    )
     @client = _create_twitter_client client_config
   end
 
@@ -66,6 +72,16 @@ public
       "@#{username} #{response}}", 
       :in_reply_to_status_id => to_tweet
     )
+  end
+
+  #----------------------------------------------------------------------------
+  def followers_count
+    @client.followers_count
+  end
+
+  #----------------------------------------------------------------------------
+  def follower_ids(username)
+    Twitter.follower_ids(username)
   end
 
 private
