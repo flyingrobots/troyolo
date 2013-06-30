@@ -1,6 +1,6 @@
 {
-  "help_title" => "Troyolo",
-  "flags" = [
+  "help_title": "Troyolo",
+  "flags": [
     {
       "name": "app-config",
       "desc": "Filepath to configuration file.",
