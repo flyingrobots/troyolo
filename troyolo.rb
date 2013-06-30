@@ -26,11 +26,12 @@
 # ------------------------------------------------------------------------------
 
 $file_dir = File.expand_path File.dirname(__FILE__)
-lib = File.join $file_dir, 'lib'
-frutils = File.join $file_dir, 'deps', 'frutils.git'
 
+frutils = File.join $file_dir, 'deps', 'frutils.git'
 require File.join frutils, 'app.rb'
 require File.join frutils, 'log.rb'
+
+lib = File.join $file_dir, 'lib'
 require File.join lib, 'tweets.rb'
 require File.join lib, 'config.rb'
 require File.join lib, 'account.rb'
@@ -61,11 +62,11 @@ end
 # ------------------------------------------------------------------------------
 def log_lost_followers(account, log)
   saved = account.saved_followers_ids
-    current = account.follower_ids
-    losses = saved - current
-    losses.each { |follower|
-      log.info "Lost follower '#{follower}'"
-    }
+  current = account.follower_ids
+  losses = saved - current
+  losses.each { |follower|
+    log.info "Lost follower '#{follower}'"
+  }
 end
 
 # ------------------------------------------------------------------------------
