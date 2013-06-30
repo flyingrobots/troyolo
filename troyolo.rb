@@ -42,15 +42,14 @@ require 'oj'
 # ------------------------------------------------------------------------------
 def args_config
   args_filepath = File.join $file_dir, 'config', 'args.json'
-  puts "Loading arguments config file: '#{args_filepath}'"
   Oj.load File.read(args_filepath), :symbol_keys => true
 end
 
 # ------------------------------------------------------------------------------
 def load_config(config_filepath, data_dir)
-  Troyolo::Configuration.new().configure() { |opts|
-      opts.config_filepath = config_filepath
-      opts.data_dir = data_dir
+  Troyolo::Configuration.new().configure() { |opts|      
+    opts.config_filepath = File.expand_path config_filepath
+    opts.data_dir = File.expand_path data_dir
   }
 end
 
@@ -58,22 +57,24 @@ end
 def load_accounts(account_list, log)
   errors = []
   clients = account_list.collect { |twitter_config|
+    account_filepath = File.expand_path File.join($file_dir, twitter_config)
+    log.debug "Loading account config file '#{account_filepath}'"
     begin
-      Troyolo::Account.new twitter_config
+      account_config = Oj.load File.read(account_filepath), :symbol_keys => true
+      log.info "Logging in as '#{account_config[:username]}'..."
+      Troyolo::Account.new account_config
     rescue => e
       errors << e
-      log.info "Bad account config for '#{twitter_config[:username]}'"
-      log.info "Unable to authenticate '#{twitter_config[:username]}'"
+      log.warn "Bad account config: ", account_filepath
     end
   }
   errors.each { |e| log.exception e }
+  clients
 end
 
 # ------------------------------------------------------------------------------
 def log_lost_followers(account, log)
-  saved = account.saved_followers_ids
-  current = account.follower_ids
-  losses = saved - current
+  losses = account.saved_follower_ids - account.follower_ids
   log.info("Lost #{losses.size} followers: ", losses) if losses.size > 0
 end
 
@@ -89,15 +90,16 @@ end
 
 # ------------------------------------------------------------------------------
 FlyingRobots::Application.new(ARGV, args_config()).run() { |opts|
-  log = FlyingRobots::Log.new
-	
-  config = load_config opts[:app_config], opts[:save_dir]
-  log.debug "config.settings = ", config.settings
-
-  clients = load_accounts config.settings[:twitter_accounts], log
-  clients.each { |c| 
-    log.info "Account '#{c.username}' is ready"
-    log_lost_followers c, log
-    follow_new_followers c, 500
-  }
+  log = FlyingRobots::Log.new :volume => FlyingRobots::Log::VOLUME_DEBUG
+  
+  config = load_config opts[:config], opts[:data]
+  
+  account_files = config.settings[:twitter_accounts]
+  clients = load_accounts(account_files, log).select { |c| c != nil }
+  log.info "#{clients.size} account(s) have been configured."
+  
+  # clients.each { |c| 
+  #   log_lost_followers c, log
+  #   follow_new_followers c, 500
+  # }
 }

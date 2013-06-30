@@ -25,6 +25,9 @@
 file_dir = File.expand_path File.dirname(__FILE__)
 require File.join file_dir, 'tweets.rb'
 
+frutils_dir = File.expand_path File.join(file_dir, '..', 'deps', 'frutils.git')
+require File.join frutils_dir, 'files.rb'
+
 require 'rubygems'
 require 'oj'
 
@@ -35,7 +38,7 @@ public
   def initialize(config)
     @client = Troyolo::Tweets.new config
     @filepath = config[:save_filepath]
-    @save_data = _from_file(@filepath)
+    @save_data = _from_file File.expand_path(@filepath)
   end
 
   def username
@@ -65,9 +68,14 @@ public
 private
   
   def _from_file(filepath)
-    Oj.load filepath
-  rescue => e
-    raise "Account file '#{filepath}' is not a valid JSON filepath"
+    file_dir = File.expand_path File.dirname(__FILE__)
+    relative_path = FlyingRobots::Files.relative_path(file_dir, filepath)
+    expanded_path = File.expand_path relative_path
+    if File.file? expanded_path
+      Oj.load File.read(expanded_path)
+    else
+      {}
+    end
   end
 
   def _to_file(filepath)

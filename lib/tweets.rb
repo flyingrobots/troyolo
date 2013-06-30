@@ -31,6 +31,9 @@ require 'twitter'
 
 module Troyolo
 
+# TODO Configure Twitter API and each Client separately, figure out why none
+# of the clients authenticate...
+
 class Tweets
   attr_reader :username
   
@@ -38,11 +41,12 @@ public
   #----------------------------------------------------------------------------
   def initialize(client_config = {})
     @username = client_config[:username]
-    @log = FlyingRobots::Log.new(
+    @log = FlyingRobots::Log.new({
       :name => "Tweets[#{@username}]",
-      :volume => Log::VOLUME_DEBUG
-    )
+      #:volume => FlyingRobots::Log::VOLUME_DEBUG
+    })
     @client = _create_twitter_client client_config
+    @token = @client.token
   end
 
   #----------------------------------------------------------------------------
@@ -85,16 +89,13 @@ public
   end
 
 private
-  MAX_SEARCH_RESULTS = 15
-
   #----------------------------------------------------------------------------
   def _create_twitter_client(config)
-    @log.info "Creating new twitter client with config: ", config
+    @log.debug "Creating new twitter client with config: ", config
     Twitter::Client.new(
-      :consumer_key => config[:consumer_key],
-      :consumer_secret => config[:consumer_secret],
       :oauth_token => config[:oauth_token],
-      :oauth_token_secret => config[:oauth_token_secret]
+      :oauth_token_secret => config[:oauth_secret],
+      :endpoint => config[:authorize_url]
     )
   end
 end

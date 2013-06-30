@@ -2,7 +2,7 @@
   "help_title": "Troyolo",
   "flags": [
     {
-      "name": "app-config",
+      "name": "config",
       "desc": "Filepath to configuration file.",
       "options": {
         "type": "string",
@@ -10,7 +10,7 @@
       }
     },
     {
-      "name": "save-dir",
+      "name": "data",
       "desc": "Directory path where account information will be saved.",
       "options": {
         "type": "string",

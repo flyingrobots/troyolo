@@ -50,6 +50,9 @@ public
 private
   #----------------------------------------------------------------------------
   def _validate_config
+    if not File.file? @config_filepath
+      raise "Config filepath '#{@config_filepath}' is not a valid file"
+    end
     if not File.directory? @data_dir
       raise "Data directory '#{@data_dir}' is not a valid directory"
     end
@@ -57,9 +60,7 @@ private
 
   #----------------------------------------------------------------------------
   def _parse_json(filepath)
-    Oj.load filepath
-  rescue => e
-    raise "Invalid config file '#{filepath}'"
+    Oj.load File.read(filepath), :symbol_keys => true
   end
 end
 
