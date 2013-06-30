@@ -64,7 +64,7 @@ def log_lost_followers(account, log)
   saved = account.saved_followers_ids
   current = account.follower_ids
   losses = saved - current
-  log.info "Lost #{losses.size} followers: ", losses
+  log.info("Lost #{losses.size} followers: ", losses) if losses.size > 0
 end
 
 # ------------------------------------------------------------------------------
