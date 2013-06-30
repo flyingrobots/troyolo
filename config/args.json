@@ -1,0 +1,21 @@
+{
+  "help_title" => "Troyolo",
+  "flags" = [
+    {
+      "name": "app-config",
+      "desc": "Filepath to configuration file.",
+      "options": {
+        "type": "string",
+        "default": "./config/app.json"
+      }
+    },
+    {
+      "name": "save-dir",
+      "desc": "Directory path where account information will be saved.",
+      "options": {
+        "type": "string",
+        "default": "./data"
+      }
+    }
+  ]
+}

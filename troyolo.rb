@@ -36,11 +36,19 @@ require File.join lib, 'tweets.rb'
 require File.join lib, 'config.rb'
 require File.join lib, 'account.rb'
 
+require 'rubygems'
+require 'oj'
+
 # ------------------------------------------------------------------------------
-def load_config
+def args_config
+  Oj.load $file_dir, 'config', 'args.json'
+end
+
+# ------------------------------------------------------------------------------
+def load_config(config_filepath, data_dir)
   Troyolo::Configuration.new().configure() { |opts|
-      opts.config_filepath = File.join $file_dir, "config", "app.json"
-      opts.data_dir = File.join $file_dir, "data"
+      opts.config_filepath = config_filepath
+      opts.data_dir = data_dir
   }
 end
 
@@ -78,10 +86,10 @@ def follow_new_followers(account, min_followers)
 end
 
 # ------------------------------------------------------------------------------
-FlyingRobots::Application.new(ARGV).run() { |opts|
+FlyingRobots::Application.new(ARGV, args_config()).run() { |opts|
   log = FlyingRobots::Log.new
 	
-  config = load_config
+  config = load_config opts[:app_config], opts[:save_dir]
   log.debug "config.settings = ", config.settings
 
   clients = load_accounts config.settings[:twitter_accounts], log
