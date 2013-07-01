@@ -61,7 +61,6 @@ def load_accounts(account_list, log)
     log.debug "Loading account config file '#{account_filepath}'"
     begin
       account_config = Oj.load File.read(account_filepath), :symbol_keys => true
-      log.info "Logging in as '#{account_config[:username]}'..."
       Troyolo::Account.new account_config
     rescue => e
       errors << e
@@ -92,14 +91,24 @@ end
 FlyingRobots::Application.new(ARGV, args_config()).run() { |opts|
   log = FlyingRobots::Log.new :volume => FlyingRobots::Log::VOLUME_DEBUG
   
+  # load application config
+  log.debug "Loading application config: ", opts[:config]
   config = load_config opts[:config], opts[:data]
+
+  # configure twitter
+  log.debug "Configuring twitter with: ", config.settings[:twitter_app]
+  Troyolo::Tweets.configure config.settings[:twitter_app]
   
-  account_files = config.settings[:twitter_accounts]
-  clients = load_accounts(account_files, log).select { |c| c != nil }
-  log.info "#{clients.size} account(s) have been configured."
+  # create twitter clients for each account
+  accounts = config.settings[:twitter_accounts]
+  log.debug "Creating twitter clients for accounts: ", accounts
+  clients = load_accounts(accounts, log).select { |c| c != nil }
   
-  # clients.each { |c| 
-  #   log_lost_followers c, log
-  #   follow_new_followers c, 500
-  # }
+  clients.each { |c| 
+    # check for lost followers
+    log_lost_followers c, log
+
+    # follow new followers
+    # follow_new_followers c, 500
+  }
 }

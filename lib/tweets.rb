@@ -35,63 +35,44 @@ module Troyolo
 # of the clients authenticate...
 
 class Tweets
-  attr_reader :username
-  
 public
   #----------------------------------------------------------------------------
-  def initialize(client_config = {})
-    @username = client_config[:username]
-    @log = FlyingRobots::Log.new({
-      :name => "Tweets[#{@username}]",
-      #:volume => FlyingRobots::Log::VOLUME_DEBUG
-    })
-    @client = _create_twitter_client client_config
-    @token = @client.token
+  def self.configure(config)
+    @@log.debug "Configuring Twitter with config: ", config
+    Twitter.configure { |t| 
+      t.consumer_key = config[:consumer_key]
+      t.consumer_secret = config[:consumer_secret]
+    }
   end
 
   #----------------------------------------------------------------------------
-  def search(query, start_id)
-    @log.info "Searching for tweets '#{query}', since tweet #{start_id}"
+  def self.create_client(config)
+    _create_client config
+  end
+
+  #----------------------------------------------------------------------------
+  def self.search(query, start_id)
+    @@log.info "Searching for tweets '#{query}', since tweet #{start_id}"
     results = Twitter.search(
       query,
       :count => MAX_SEARCH_RESULTS,
       :result_type => "recent",
       :since_id => start_id
     )
-    @log.info "Found #{results.statuses.count} tweets"
-    @log.info "Last tweet id found: #{results.max_id}"
+    @@log.info "Found #{results.statuses.count} tweets"
+    @@log.info "Last tweet id found: #{results.max_id}"
     results
   end
 
-  #----------------------------------------------------------------------------
-  def tweet(message)
-    @log.info "Tweeting '#{message}'"
-    @client.update(message)
-  end
-
-  #----------------------------------------------------------------------------
-  def reply(to_tweet, username, response)
-    @log.info "Responding to tweet '#{to_tweet}"
-    @client.update(
-      "@#{username} #{response}}", 
-      :in_reply_to_status_id => to_tweet
-    )
-  end
-
-  #----------------------------------------------------------------------------
-  def followers_count
-    @client.followers_count
-  end
-
-  #----------------------------------------------------------------------------
-  def follower_ids(username)
-    Twitter.follower_ids(username)
-  end
-
 private
+  @@log = FlyingRobots::Log.new({
+      :name => "Tweets",
+      :volume => FlyingRobots::Log::VOLUME_DEBUG
+    })
+
   #----------------------------------------------------------------------------
-  def _create_twitter_client(config)
-    @log.debug "Creating new twitter client with config: ", config
+  def self._create_client(config)
+    @@log.debug "Creating new twitter client with config: ", config
     Twitter::Client.new(
       :oauth_token => config[:oauth_token],
       :oauth_token_secret => config[:oauth_secret],
