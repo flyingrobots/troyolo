@@ -1,4 +1,4 @@
-# account.rb
+# twitter.rb
 # ------------------------------------------------------------------------------
 # The MIT License (MIT)
 # 
@@ -22,36 +22,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
-file_dir = File.expand_path File.dirname(__FILE__)
-require File.join file_dir, "access.rb"
-require File.join file_dir, "twitter.rb"
-
-frutils = File.expand_path File.join(file_dir, "..", "deps", "frutils.git")
-require File.join frutils, "log.rb"
-
 module Troyolo
 
-class Account
-  attr_reader :user
-public
+class Twitter
   #----------------------------------------------------------------------------
-  def initialize(access, save_path)
-    @access = access
-    @user = {}
-    @save_path = save_path
+  def self.api_url
+    "https://api.twitter.com/1.1/" 
   end
 
   #----------------------------------------------------------------------------
-  def login
-    @user = @access.get Twitter.account_login_path
-    self
-  end  
-
-  #----------------------------------------------------------------------------
-  def loggedin?
-    @user.size > 0
+  def self.account_login_path
+    "account/verify_credentials.json"
   end
-
 
 end
 

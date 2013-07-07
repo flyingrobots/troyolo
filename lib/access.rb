@@ -1,4 +1,4 @@
-# tweets.rb
+# access.rb
 # ------------------------------------------------------------------------------
 # The MIT License (MIT)
 # 
@@ -23,62 +23,62 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 file_dir = File.expand_path File.dirname(__FILE__)
-frutils = File.expand_path File.join(file_dir, '..', 'deps', 'frutils.git')
+require File.join file_dir, "twitter.rb"
 
-require File.join frutils, 'log.rb'
+frutils = File.expand_path File.join(file_dir, "..", "deps", "frutils.git")
+require File.join frutils, "log.rb"
+require File.join frutils, "obj.rb"
+
 require 'rubygems'
-require 'twitter'
+require 'oauth'
 
 module Troyolo
 
-# TODO Configure Twitter API and each Client separately, figure out why none
-# of the clients authenticate...
-
-class Tweets
+class AccessToken
 public
   #----------------------------------------------------------------------------
-  def self.configure(config)
-    @@log.debug "Configuring Twitter with config: ", config
-    Twitter.configure { |t| 
-      t.consumer_key = config[:consumer_key]
-      t.consumer_secret = config[:consumer_secret]
-    }
+  def initialize(oauth_token, oauth_secret, api_token, api_secret)
+    @log = FlyingRobots::Log.new({:name => "AccessToken", :volume => FlyingRobots::Log::VOLUME_DEBUG})
+    @oauth_token = oauth_token
+    @oauth_secret = oauth_secret
+    @api_token = api_token
+    @api_secret = api_secret
+    @access_token = _create_access_token
   end
 
   #----------------------------------------------------------------------------
-  def self.create_client(config)
-    _create_client config
+  def get(path, options = {}, *args)
+    _request :get, path, options, args
   end
 
   #----------------------------------------------------------------------------
-  def self.search(query, start_id)
-    @@log.info "Searching for tweets '#{query}', since tweet #{start_id}"
-    results = Twitter.search(
-      query,
-      :count => MAX_SEARCH_RESULTS,
-      :result_type => "recent",
-      :since_id => start_id
-    )
-    @@log.info "Found #{results.statuses.count} tweets"
-    @@log.info "Last tweet id found: #{results.max_id}"
-    results
+  def post(path, options = {}, *args)
+    _request :post, path, options, args
   end
 
 private
-  @@log = FlyingRobots::Log.new({
-      :name => "Tweets",
-      :volume => FlyingRobots::Log::VOLUME_DEBUG
+  #----------------------------------------------------------------------------
+  def _create_access_token
+    oauth_consumer = OAuth::Consumer.new(@api_token, @api_secret, {
+      :site => "http://api.twitter.com",
+      :scheme => :header
     })
+    token_hash = {
+      :oauth_token => @oauth_token,
+      :oauth_token_secret => @oauth_secret
+    }
+    OAuth::AccessToken.from_hash oauth_consumer, token_hash
+  end
 
   #----------------------------------------------------------------------------
-  def self._create_client(config)
-    @@log.debug "Creating new twitter client with config: ", config
-    Twitter::Client.new(
-      :oauth_token => config[:oauth_token],
-      :oauth_token_secret => config[:oauth_secret],
-      :endpoint => config[:authorize_url]
-    )
+  def _request(method, path, options = {}, *args)
+    url = Twitter.api_url + path
+    http_response = @access_token.request(method, url, args) 
+    response = FlyingRobots::Obj.to_hash(http_response)
+    JSON.parse response['body']
   end
+
 end
 
 end
+

@@ -32,12 +32,12 @@ require File.join frutils, 'app.rb'
 require File.join frutils, 'log.rb'
 
 lib = File.join $file_dir, 'lib'
-require File.join lib, 'tweets.rb'
 require File.join lib, 'config.rb'
+require File.join lib, 'access.rb'
 require File.join lib, 'account.rb'
 
 require 'rubygems'
-require 'oj'
+require 'json'
 
 # ------------------------------------------------------------------------------
 def args_config
@@ -46,45 +46,15 @@ def args_config
 end
 
 # ------------------------------------------------------------------------------
-def load_config(config_filepath, data_dir)
-  Troyolo::Configuration.new().configure() { |opts|      
-    opts.config_filepath = File.expand_path config_filepath
-    opts.data_dir = File.expand_path data_dir
-  }
-end
-
-# ------------------------------------------------------------------------------
-def load_accounts(account_list, log)
-  errors = []
-  clients = account_list.collect { |twitter_config|
-    account_filepath = File.expand_path File.join($file_dir, twitter_config)
-    log.debug "Loading account config file '#{account_filepath}'"
-    begin
-      account_config = Oj.load File.read(account_filepath), :symbol_keys => true
-      Troyolo::Account.new account_config
-    rescue => e
-      errors << e
-      log.warn "Bad account config: ", account_filepath
-    end
-  }
-  errors.each { |e| log.exception e }
-  clients
-end
-
-# ------------------------------------------------------------------------------
-def log_lost_followers(account, log)
-  losses = account.saved_follower_ids - account.follower_ids
-  log.info("Lost #{losses.size} followers: ", losses) if losses.size > 0
-end
-
-# ------------------------------------------------------------------------------
-def follow_new_followers(account, min_followers)
-  old_count = account.saved_followers_count
-  new_count = account.followers_count
-  if new_count > old_count
-    new_followers = current - saved
-    # TODO finish this
-  end
+def account_from_file(filepath, app)
+  settings = JSON.parse File.read(filepath)
+  access = Troyolo::AccessToken.new(
+    settings["oauth_token"],
+    settings["oauth_secret"],
+    app["consumer_key"],
+    app["consumer_secret"]
+  )
+  Troyolo::Account.new access, settings["save_filepath"]
 end
 
 # ------------------------------------------------------------------------------
@@ -92,23 +62,20 @@ FlyingRobots::Application.new(ARGV, args_config()).run() { |opts|
   log = FlyingRobots::Log.new :volume => FlyingRobots::Log::VOLUME_DEBUG
   
   # load application config
-  log.debug "Loading application config: ", opts[:config]
-  config = load_config opts[:config], opts[:data]
+  config = JSON.parse File.read(opts[:config])
 
-  # configure twitter
-  log.debug "Configuring twitter with: ", config.settings[:twitter_app]
-  Troyolo::Tweets.configure config.settings[:twitter_app]
-  
-  # create twitter clients for each account
-  accounts = config.settings[:twitter_accounts]
-  log.debug "Creating twitter clients for accounts: ", accounts
-  clients = load_accounts(accounts, log).select { |c| c != nil }
-  
-  clients.each { |c| 
-    # check for lost followers
-    log_lost_followers c, log
-
-    # follow new followers
-    # follow_new_followers c, 500
+  # load account settings
+  accounts = []
+  config["twitter_accounts"].each { |filepath|
+    accounts << account_from_file(filepath, config["twitter_app"])
   }
+
+  users = accounts.select { |a|
+    a.login
+    a.loggedin?
+  }
+
+  log.info "Logged in count:", users.size
+  users.each { |u| log.pretty FlyingRobots::Log::VOLUME_INFO, u.user }
 }
+
