@@ -23,7 +23,7 @@
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
 file_dir = File.expand_path File.dirname(__FILE__)
-require File.join file_dir, "access.rb"
+require File.join file_dir, "access_token.rb"
 require File.join file_dir, "twitter.rb"
 
 frutils = File.expand_path File.join(file_dir, "..", "deps", "frutils.git")
@@ -35,7 +35,7 @@ class Account
 public
   #----------------------------------------------------------------------------
   def initialize(access, save_path)
-    @access = access
+    @token = access
     @user = {}
     @save_path = save_path
     @cached_follower_ids = {
@@ -47,7 +47,7 @@ public
   #----------------------------------------------------------------------------
   def login
     if not loggedin? 
-      @user = @access.get Twitter.account_login_path
+      @user = @token.get Twitter.account_login_path
     end
   end  
 
@@ -73,7 +73,7 @@ public
     if last_page != page
       path = Twitter.follower_ids_query_path
       path.concat "?cursor=#{page}&screen_name=#{@user["screen_name"]}"
-      @cached_follower_ids[:ids] = @access.get(path)["ids"]
+      @cached_follower_ids[:ids] = @token.get(path)["ids"]
       @cached_follower_ids[:page] = page
     end
     @cached_follower_ids[:ids]

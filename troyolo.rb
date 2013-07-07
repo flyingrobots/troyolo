@@ -33,7 +33,7 @@ require File.join frutils, 'log.rb'
 
 lib = File.join $file_dir, 'lib'
 require File.join lib, 'config.rb'
-require File.join lib, 'access.rb'
+require File.join lib, 'access_token.rb'
 require File.join lib, 'account.rb'
 
 require 'rubygems'
@@ -48,13 +48,13 @@ end
 # ------------------------------------------------------------------------------
 def account_from_file(filepath, app)
   settings = JSON.parse File.read(filepath)
-  access = Troyolo::AccessToken.new(
+  token = Troyolo::AccessToken.new(
     settings["oauth_token"],
     settings["oauth_secret"],
     app["consumer_key"],
     app["consumer_secret"]
   )
-  Troyolo::Account.new access, settings["save_filepath"]
+  Troyolo::Account.new token, settings["save_filepath"]
 end
 
 # ------------------------------------------------------------------------------
