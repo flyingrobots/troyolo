@@ -1,5 +1,9 @@
 {
     "twitter_accounts":[
         "./config/troyolo_a.account.json"
-    ]
+    ],
+    "twitter_app": {
+        "consumer_key": "{key}"
+        "consumer_secret": "{secret}"
+    }
 }
