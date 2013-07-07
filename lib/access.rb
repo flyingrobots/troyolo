@@ -47,13 +47,13 @@ public
   end
 
   #----------------------------------------------------------------------------
-  def get(path, options = {}, *args)
-    _request :get, path, options, args
+  def get(path, *args)
+    _request :get, path, args
   end
 
   #----------------------------------------------------------------------------
-  def post(path, options = {}, *args)
-    _request :post, path, options, args
+  def post(path, *args)
+    _request :post, path, args
   end
 
 private
@@ -71,7 +71,7 @@ private
   end
 
   #----------------------------------------------------------------------------
-  def _request(method, path, options = {}, *args)
+  def _request(method, path, *args)
     url = Twitter.api_url + path
     http_response = @access_token.request(method, url, args) 
     response = FlyingRobots::Obj.to_hash(http_response)
