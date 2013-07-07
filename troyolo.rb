@@ -42,7 +42,7 @@ require 'json'
 # ------------------------------------------------------------------------------
 def args_config
   args_filepath = File.join $file_dir, 'config', 'args.json'
-  Oj.load File.read(args_filepath), :symbol_keys => true
+  JSON.parse File.read(args_filepath), {:symbolize_names => true}
 end
 
 # ------------------------------------------------------------------------------
