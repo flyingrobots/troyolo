@@ -1,12 +1,11 @@
-# Status update
+# The past
+Troyolo started out as an inside joke that I took way too seriously by writing a twitter bot that would tweet bitly links to silly pug gifs in response to any tweet containing the hashtag '#troyolo', but quickly evolved into a massive twitter spam bot as the power went to my head. At one point, I had it tweeting pug gifs in response to all sorts of things, spamming all sorts of people. Highlight of the trip: my spam bot encountered another spam bot and the two bots tweeted back and forth in response to each other for hours. Eventually, the monster I had created was shut down when twitter banned the account used by my spam bot. It was fun while it lasted.
 
-I use the `master` branch for development, so check out `stable` if you wanna see a working version. I'm currently in the middle of tidying things up and such, so content on `master` is not guaranteed to even run at the moment. 
+# The present
+Now, I've decided to reform my evil ways and transform Troyolo into a tool for good. My plan for the new Troyolo is to use it as an auto-follower bot. It'll detect when new people follow a twitter account and follow them back. Maybe that sounds useless to you, but trust me, it's a great idea.
 
-# Automated delivery of "the drop"
+# The future
+* Schedule tweets in advance
+* Support for twitter multiple accounts
+* Maybe even a web-based UI, who knows!
 
-1. Tweet something with the hashtag #troyolo
-2. Await "the drop".
-
-## Dependencies
-
-sudo gem install SystemTime twitter oj
