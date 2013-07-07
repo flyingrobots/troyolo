@@ -35,6 +35,11 @@ class Twitter
     "account/verify_credentials.json"
   end
 
+  #----------------------------------------------------------------------------
+  def self.follower_ids_query_path
+    "followers/ids.json"
+  end
+
 end
 
 end

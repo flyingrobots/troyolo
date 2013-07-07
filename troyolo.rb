@@ -64,18 +64,23 @@ FlyingRobots::Application.new(ARGV, args_config()).run() { |opts|
   # load application config
   config = JSON.parse File.read(opts[:config])
 
-  # load account settings
-  accounts = []
+  # authenticate each account
+  users = []
   config["twitter_accounts"].each { |filepath|
-    accounts << account_from_file(filepath, config["twitter_app"])
-  }
-
-  users = accounts.select { |a|
+    a = account_from_file(filepath, config["twitter_app"])
     a.login
-    a.loggedin?
+    users << a if a.loggedin?
   }
 
+  # display followers info
   log.info "Logged in count:", users.size
-  users.each { |u| log.pretty FlyingRobots::Log::VOLUME_INFO, u.user }
+  log.info "---------------------------------------"
+  users.each { |u| 
+    #log.pretty FlyingRobots::Log::VOLUME_INFO, u.user 
+    log.info "Screen name: #{u.screen_name}"
+    log.info "Followers count: #{u.followers_count}"
+    log.info "Follower ids:"
+    log.pretty FlyingRobots::Log::VOLUME_INFO, u.follower_ids
+  }
 }
 

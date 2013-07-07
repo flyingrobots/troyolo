@@ -32,19 +32,23 @@ require File.join frutils, "log.rb"
 module Troyolo
 
 class Account
-  attr_reader :user
 public
   #----------------------------------------------------------------------------
   def initialize(access, save_path)
     @access = access
     @user = {}
     @save_path = save_path
+    @cached_follower_ids = {
+      :ids => [],
+      :page => -2 # -1 means 'first page', so use -2 as uninitialized value
+    }
   end
 
   #----------------------------------------------------------------------------
   def login
-    @user = @access.get Twitter.account_login_path
-    self
+    if not loggedin? 
+      @user = @access.get Twitter.account_login_path
+    end
   end  
 
   #----------------------------------------------------------------------------
@@ -52,6 +56,28 @@ public
     @user.size > 0
   end
 
+  #----------------------------------------------------------------------------
+  def screen_name
+    @user["screen_name"]
+  end
+
+  #----------------------------------------------------------------------------
+  def followers_count
+    @user["followers_count"] 
+  end
+
+  #----------------------------------------------------------------------------
+  def follower_ids(page = -1)
+    return [] if not loggedin?
+    last_page = @cached_follower_ids[:page]
+    if last_page != page
+      path = Twitter.follower_ids_query_path
+      path.concat "?cursor=#{page}&screen_name=#{@user["screen_name"]}"
+      @cached_follower_ids[:ids] = @access.get(path)["ids"]
+      @cached_follower_ids[:page] = page
+    end
+    @cached_follower_ids[:ids]
+  end
 
 end
 
