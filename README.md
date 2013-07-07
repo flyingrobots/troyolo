@@ -6,6 +6,6 @@ Now, I've decided to reform my evil ways and transform Troyolo into a tool for g
 
 # The future
 * Schedule tweets in advance
-* Support for twitter multiple accounts
+* Support for multiple twitter accounts
 * Maybe even a web-based UI, who knows!
 
