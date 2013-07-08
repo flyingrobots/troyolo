@@ -26,7 +26,6 @@ file_dir = File.expand_path File.dirname(__FILE__)
 require File.join file_dir, "twitter.rb"
 
 frutils = File.expand_path File.join(file_dir, "..", "deps", "frutils.git")
-require File.join frutils, "log.rb"
 require File.join frutils, "obj.rb"
 
 require 'rubygems'
@@ -38,10 +37,6 @@ class AccessToken
 public
   #----------------------------------------------------------------------------
   def initialize(oauth_token, oauth_secret, api_token, api_secret)
-    @log = FlyingRobots::Log.new({
-      :name => "AccessToken", 
-      :volume => FlyingRobots::Log::VOLUME_DEBUG
-    })
     @oauth_token = _create_access_token(
       oauth_token,
       oauth_secret,
