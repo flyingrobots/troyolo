@@ -1,4 +1,4 @@
-# account.rb
+# query_cache.rb
 # ------------------------------------------------------------------------------
 # The MIT License (MIT)
 # 
@@ -22,51 +22,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
-file_dir = File.dirname(__FILE__)
-require File.join file_dir, "access_token.rb"
-require File.join file_dir, "twitter.rb"
-require File.join file_dir, "query_cache.rb"
+file_dir = File.dirname __FILE__
+require File.join file_dir, 'cached_query.rb'
 
 module Troyolo
 
-class Account
-public
+class QueryCache
   #----------------------------------------------------------------------------
-  def initialize(access, save_path)
-    @token = access
-    @user = {}
-    @save_path = save_path
-    @query_cache = QueryCache.new
+  def initialize
+    reset
   end
 
   #----------------------------------------------------------------------------
-  def login
-    if not loggedin? 
-      @user = @token.get Twitter.account_login_path
-    end
-  end  
-
-  #----------------------------------------------------------------------------
-  def loggedin?
-    @user.size > 0
+  def execute(token, method, path, *args)
+    query = @cache.fetch(path) { |p|
+      @cache.store(p, CachedQuery.new)
+    }
+    query.execute token, method, path, args
   end
-
+  
   #----------------------------------------------------------------------------
-  def screen_name
-    @user["screen_name"]
-  end
-
-  #----------------------------------------------------------------------------
-  def followers_count
-    @user["followers_count"] 
-  end
-
-  #----------------------------------------------------------------------------
-  def follower_ids(page = -1)
-    return [] if not loggedin?
-    path = Twitter.follower_ids_query_path
-    path.concat "?cursor=#{page}&screen_name=#{@user["screen_name"]}"
-    @query_cache.execute @token, :get, path
+  def reset
+    @cache = {}
   end
 
 end

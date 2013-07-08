@@ -1,4 +1,4 @@
-# account.rb
+# cached_query.rb
 # ------------------------------------------------------------------------------
 # The MIT License (MIT)
 # 
@@ -22,51 +22,34 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
-file_dir = File.dirname(__FILE__)
-require File.join file_dir, "access_token.rb"
-require File.join file_dir, "twitter.rb"
-require File.join file_dir, "query_cache.rb"
-
 module Troyolo
 
-class Account
-public
+class CachedQuery
+  attr_reader :result
+
   #----------------------------------------------------------------------------
-  def initialize(access, save_path)
-    @token = access
-    @user = {}
-    @save_path = save_path
-    @query_cache = QueryCache.new
+  def initialize
+    @path = ""
+    @result = nil
+    @timeout = 0
   end
 
   #----------------------------------------------------------------------------
-  def login
-    if not loggedin? 
-      @user = @token.get Twitter.account_login_path
+  def execute(token, method, path, *args)
+    if @path != path or @timeout < Time.now
+      puts "refreshing query..."
+      case method
+      when :get
+        @result = token.get(path, args)
+      when :post
+        @result = token.post(path, args)
+      else
+        raise "Unknown request method '#{method}'"
+      end
+      @path = path
+      @timeout = Time.now + 60 * 45 # 45 minutes
     end
-  end  
-
-  #----------------------------------------------------------------------------
-  def loggedin?
-    @user.size > 0
-  end
-
-  #----------------------------------------------------------------------------
-  def screen_name
-    @user["screen_name"]
-  end
-
-  #----------------------------------------------------------------------------
-  def followers_count
-    @user["followers_count"] 
-  end
-
-  #----------------------------------------------------------------------------
-  def follower_ids(page = -1)
-    return [] if not loggedin?
-    path = Twitter.follower_ids_query_path
-    path.concat "?cursor=#{page}&screen_name=#{@user["screen_name"]}"
-    @query_cache.execute @token, :get, path
+    @result
   end
 
 end
