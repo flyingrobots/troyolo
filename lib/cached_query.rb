@@ -37,7 +37,6 @@ class CachedQuery
   #----------------------------------------------------------------------------
   def execute(token, method, path, *args)
     if @path != path or @timeout < Time.now
-      puts "refreshing query..."
       case method
       when :get
         @result = token.get(path, args)
