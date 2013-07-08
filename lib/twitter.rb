@@ -26,6 +26,11 @@ module Troyolo
 
 class Twitter
   #----------------------------------------------------------------------------
+  def self.oauth_url
+    "http://api.twitter.com"
+  end
+
+  #----------------------------------------------------------------------------
   def self.api_url
     "https://api.twitter.com/1.1/" 
   end

@@ -59,7 +59,7 @@ private
   #----------------------------------------------------------------------------
   def _create_access_token(oauth_token, oauth_secret, api_token, api_secret)
     oauth_consumer = OAuth::Consumer.new(api_token, api_secret, {
-      :site => "http://api.twitter.com",
+      :site => Twitter.oauth_url,
       :scheme => :header
     })
     token_hash = {
