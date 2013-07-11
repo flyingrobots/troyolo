@@ -30,6 +30,7 @@ $file_dir = File.expand_path File.dirname(__FILE__)
 frutils = File.join $file_dir, 'deps', 'frutils.git'
 require File.join frutils, 'app.rb'
 require File.join frutils, 'log.rb'
+require File.join frutils, 'obj.rb'
 
 lib = File.join $file_dir, 'lib'
 require File.join lib, 'config.rb'
@@ -58,6 +59,15 @@ def account_from_file(filepath, app)
 end
 
 # ------------------------------------------------------------------------------
+def save_account(account)
+  filepath = File.expand_path account.save_path
+  File.open(filepath, "w") { |fstream|
+    fstream.puts FlyingRobots::Obj.to_json(account, :pretty => true)
+  }
+  $stdout.puts "Saved #{filepath}"
+end
+
+# ------------------------------------------------------------------------------
 FlyingRobots::Application.new(ARGV, args_config()).run() { |opts|
   log = FlyingRobots::Log.new :volume => FlyingRobots::Log::VOLUME_DEBUG
   
@@ -73,14 +83,9 @@ FlyingRobots::Application.new(ARGV, args_config()).run() { |opts|
   }
 
   # display followers info
-  log.info "Logged in count:", users.size
-  log.info "---------------------------------------"
   users.each { |u| 
-    #log.pretty FlyingRobots::Log::VOLUME_INFO, u.user 
-    log.info "Screen name: #{u.screen_name}"
-    log.info "Followers count: #{u.followers_count}"
-    log.info "Follower ids:"
-    log.pretty FlyingRobots::Log::VOLUME_INFO, u.follower_ids
+    u.follower_ids
+    save_account u
   }
 }
 

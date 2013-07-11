@@ -45,7 +45,7 @@ class QueryCache
   def reset
     @cache = {}
   end
-
+  
 end
 
 end

@@ -30,6 +30,7 @@ require File.join file_dir, "query_cache.rb"
 module Troyolo
 
 class Account
+  attr_reader :save_path
 public
   #----------------------------------------------------------------------------
   def initialize(access, save_path)
@@ -69,6 +70,17 @@ public
     @query_cache.execute @token, :get, path
   end
 
+  #----------------------------------------------------------------------------
+  def to_json(options)
+    h = FlyingRobots::Obj.to_hash(self).delete_if { |key, value|
+      key == "token"
+    }
+    if options[:pretty] == true
+      JSON.pretty_generate h
+    else
+      JSON.generate h
+    end
+  end
 end
 
 end

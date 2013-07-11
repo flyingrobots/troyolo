@@ -22,6 +22,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
+file_dir = File.dirname __FILE__
+frutils = File.expand_path File.join(file_dir, "..", "deps", "frutils.git")
+require File.join frutils, "log.rb"
+
 module Troyolo
 
 class CachedQuery
@@ -32,11 +36,16 @@ class CachedQuery
     @path = ""
     @result = nil
     @timeout = 0
+    @log = FlyingRobots::Log.new({
+      :name => "CachedQuery",
+      :volume => FlyingRobots::Log::VOLUME_DEBUG
+    });
   end
 
   #----------------------------------------------------------------------------
   def execute(token, method, path, *args)
     if @path != path or @timeout < Time.now
+      @log.info "http request: #{method} #{path}"
       case method
       when :get
         @result = token.get(path, args)
