@@ -1,4 +1,4 @@
-# account.rb
+# access.rb
 # ------------------------------------------------------------------------------
 # The MIT License (MIT)
 # 
@@ -22,65 +22,62 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
-file_dir = File.dirname(__FILE__)
-require File.join file_dir, "access_token.rb"
+file_dir = File.expand_path File.dirname(__FILE__)
 require File.join file_dir, "twitter.rb"
-require File.join file_dir, "query_cache.rb"
+
+frutils = File.expand_path File.join(file_dir, "..", "deps", "frutils.git")
+require File.join frutils, "serializer.rb"
+
+require 'rubygems'
+require 'oauth'
 
 module Troyolo
 
-class Account
-  attr_reader :save_path
+class AccessToken
 public
   #----------------------------------------------------------------------------
-  def initialize(access, save_path)
-    @token = access
-    @user = {}
-    @save_path = save_path
-    @query_cache = QueryCache.new
+  def initialize(oauth_token, oauth_secret, api_token, api_secret)
+    @oauth_token = _create_access_token(
+      oauth_token,
+      oauth_secret,
+      api_token,
+      api_secret
+    )
+    @serializer = FlyingRobots::Serializer.new
   end
 
   #----------------------------------------------------------------------------
-  def login
-    if not loggedin? 
-      @user = @token.get Twitter.account_login_path
-    end
-  end  
-
-  #----------------------------------------------------------------------------
-  def loggedin?
-    @user.size > 0
+  def get(path, *args)
+    _request :get, path, args
   end
 
   #----------------------------------------------------------------------------
-  def screen_name
-    @user["screen_name"]
+  def post(path, *args)
+    _request :post, path, args
   end
 
+private
   #----------------------------------------------------------------------------
-  def followers_count
-    @user["followers_count"] 
-  end
-
-  #----------------------------------------------------------------------------
-  def follower_ids(page = -1)
-    return [] if not loggedin?
-    path = Twitter.follower_ids_query_path
-    path.concat "?cursor=#{page}&screen_name=#{@user["screen_name"]}"
-    @query_cache.execute @token, :get, path
-  end
-
-  #----------------------------------------------------------------------------
-  def to_json(options)
-    h = FlyingRobots::Obj.to_hash(self).delete_if { |key, value|
-      key == "token"
+  def _create_access_token(oauth_token, oauth_secret, api_token, api_secret)
+    oauth_consumer = OAuth::Consumer.new(api_token, api_secret, {
+      :site => Twitter.oauth_url,
+      :scheme => :header
+    })
+    token_hash = {
+      :oauth_token => oauth_token,
+      :oauth_token_secret => oauth_secret
     }
-    if options[:pretty] == true
-      JSON.pretty_generate h
-    else
-      JSON.generate h
-    end
+    OAuth::AccessToken.from_hash oauth_consumer, token_hash
   end
+
+  #----------------------------------------------------------------------------
+  def _request(method, path, *args)
+    url = Twitter.api_url + path
+    http_response = @oauth_token.request(method, url, args) 
+    response = @serializer.serialize(http_response)
+    JSON.parse response['body']
+  end
+
 end
 
 end

@@ -33,6 +33,7 @@ class QueryCache
     reset
   end
 
+
   #----------------------------------------------------------------------------
   def execute(token, method, path, *args)
     query = @cache.fetch(path) { |p|
@@ -41,11 +42,19 @@ class QueryCache
     query.execute token, method, path, args
   end
   
+
+  #----------------------------------------------------------------------------
+  def size
+    @cache.size
+  end
+
+
   #----------------------------------------------------------------------------
   def reset
     @cache = {}
   end
-  
+
+
 end
 
 end

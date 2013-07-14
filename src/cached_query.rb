@@ -28,39 +28,51 @@ require File.join frutils, "log.rb"
 
 module Troyolo
 
-class CachedQuery
-  attr_reader :result
+  #############################################################################
+  class CachedQuery
+    attr_reader :result
 
-  #----------------------------------------------------------------------------
-  def initialize
-    @path = ""
-    @result = nil
-    @timeout = 0
-    @log = FlyingRobots::Log.new({
-      :name => "CachedQuery",
-      :volume => FlyingRobots::Log::VOLUME_DEBUG
-    });
-  end
 
-  #----------------------------------------------------------------------------
-  def execute(token, method, path, *args)
-    if @path != path or @timeout < Time.now
-      @log.info "http request: #{method} #{path}"
-      case method
-      when :get
-        @result = token.get(path, args)
-      when :post
-        @result = token.post(path, args)
-      else
-        raise "Unknown request method '#{method}'"
-      end
-      @path = path
-      @timeout = Time.now + 60 * 45 # 45 minutes
+    #--------------------------------------------------------------------------
+    def initialize
+      @path = ""
+      @result = {}
+      @timeout = Time.now.utc
+      @log = FlyingRobots::Log.new({
+        :name => "CachedQuery",
+        :volume => FlyingRobots::Log::VOLUME_DEBUG
+      });
     end
-    @result
+
+
+    #--------------------------------------------------------------------------
+    def execute(token, method, path, *args)
+      now = Time.now.utc
+      if @path != path or @timeout < now
+        case method
+        when :get
+          @result = token.get(path, args)
+        when :post
+          @result = token.post(path, args)
+        else
+          raise "Unknown request method '#{method}'"
+        end
+        @path = path
+        @timeout = now + 60 * 15
+        @log.info "#{method.to_s.upcase} #{path} [expires #{@timeout}]"
+      end
+      @result
+    end
+
+
+    #--------------------------------------------------------------------------
+    def serializer_ignore
+      ["@log"]
+    end
+
+
   end
 
-end
 
 end
 
