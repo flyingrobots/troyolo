@@ -24,29 +24,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 # ------------------------------------------------------------------------------
-$file_dir = File.expand_path File.dirname(__FILE__)
-
-frutils = File.join $file_dir, 'deps', 'frutils.git'
+__dir__ = File.expand_path '..', __FILE__
+frutils = File.join __dir__, 'deps', 'frutils.git'
 require File.join frutils, 'app.rb'
 require File.join frutils, 'log.rb'
 require File.join frutils, 'deserializer.rb'
-
-
-src = File.join $file_dir, 'src'
+src = File.join __dir__, 'src'
 require File.join src, 'config.rb'
 require File.join src, 'access_token.rb'
 require File.join src, 'account.rb'
-
-
 require 'rubygems'
 require 'json'
 
-
-#------------------------------------------------------------------------------
-def args_config
-  args_filepath = File.join $file_dir, 'config', 'args.json'
-  JSON.parse File.read(args_filepath), {:symbolize_names => true}
-end
+args_filepath = File.join __dir__, 'config', 'args.json'
+args_config = JSON.parse File.read(args_filepath), {:symbolize_names => true}
 
 
 #------------------------------------------------------------------------------
@@ -72,18 +63,15 @@ end
 
 
 #------------------------------------------------------------------------------
-def save_account(account, log)
+def save_account(account)
   data = FlyingRobots::Serializer.new().to_pretty_json account
   filepath = File.expand_path account.save_path
-  File.open(filepath, "w") { |fstream|
-    fstream.puts data
-  }
-  log.info "Saved #{filepath}"
+  File.open(filepath, "w") { |fstream| fstream.puts data }
 end
 
 
 ###############################################################################
-FlyingRobots::Application.new(ARGV, args_config()).run() { |opts|
+FlyingRobots::Application.new(ARGV, args_config).run() { |opts|
   log = FlyingRobots::Log.new :volume => FlyingRobots::Log::VOLUME_DEBUG
   
   # load application config
@@ -101,7 +89,8 @@ FlyingRobots::Application.new(ARGV, args_config()).run() { |opts|
   users.each { |u| 
     follower_ids = u.follower_ids
     log.info "User '#{u.screen_name}' has #{follower_ids.size} followers"
-    save_account u, log
+    save_account u
   }
 }
+
 
